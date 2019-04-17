@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Weather Application</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+    </head>
+    <body>
+        <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
+                        <image src="http://localhost:8000/images/Logo.png" class="rounded float-left"  style="background-color: #1c4f64;  height: 75px;
+  width: 150px;"/>
+            <a class="navbar-brand">Weather Application</a>
+            <form class="form-inline">
+                <input class="form-control ui-autocomplete-input" type="text" autocomplete="off" placeholder="Search" aria-label="Search" id="mySearch">
+                <input class="form-control ui-autocomplete-input" type="hidden" autocomplete="off" placeholder="Search" aria-label="Search" id="mySearchTemp">
+                <div id='btnSearch'>
+                    <a class="btn btn-primary" href="/"  role="button"  id="submitSearch" >Search</a>                                       
+                </div>
+            </form>
+        </nav>
+        <div id="current">
+            <!--            <input class="btn btn-primary" type="submit2" value="Weather for Current Location"  id="btnCurrent">-->
+        </div>
+
+        <table class="table table-hover" id="myTable">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+
+
+
+        <script
+            src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>            
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+        <script>
+
+            var city = document.location.pathname.substring(14, document.location.pathname.length - 3)
+            var country = document.location.pathname.substring(document.location.pathname.lastIndexOf(",") + 1)
+            $(document).ready(function (ev) {
+
+                fetch('/getAll/' + city + ',' + country).then(function (response) {
+
+                    return response.json();
+
+                }).then(function (json) {
+                    $("#current").append(
+                            '<a class="btn btn-primary" href= "/weather/"  role="button">Weather for Current Location</a>'
+
+                            );
+                    $("#myTable > thead").append(
+                            '<tr>' +
+                            '<th scope="col">Date</th>' +
+                            '<th scope="col">Temp</th>' +
+                            '<th scope="col">Min Temp</th>' +
+                            ' <th scope="col">Max temp</th>' +
+                            ' <th scope="col">Precipitations</th>' +
+                            ' <th scope="col">Clouds</th>' +
+                            ' <th scope="col">Wind Speed</th>' +
+                            ' <th scope="col">City Name</th>' +
+                            ' <th scope="col">Country</th>' +
+                            '</tr>');
+                    for (i = 0; i < json.length; i++) {
+
+                        $("#myTable > tbody").append(
+                                '<tr>' +
+                                '<th scope="row">' + json[i].dateStamp + '</th>' +
+                                '<td>' + json[i].temp + '</td>' +
+                                '<td>' + json[i].minTemp + '</td>' +
+                                '<td>' + json[i].maxTemp + '</td>' +
+                                '<td>' + '<img src="' + json[i].icon + '" class="rounded float-left" alt="...">' + json[i].precipitations + '</td>' +
+                                '<td>' + json[i].clouds + '</td>' +
+                                '<td>' + json[i].windSpeed + '</td>' +
+                                '<td>' + json[i].cityName + '</td>' +
+                                '<td>' + json[i].country + '</td>' +
+                                '</tr>'
+                                );
+                    }
+                });
+
+
+
+                $("#submitSearch").click(function () {
+                    data = $('#mySearchTemp').val();
+
+                    var city = data.substring(0, data.indexOf(","));
+                    var uri = '/weather/search/' + city;
+
+                    $('a[href^="/"]').each(function () {
+                        var oldUrl = $(this).attr("href"); // Get current url
+                        var newUrl = oldUrl.replace("/", uri); // Create new url
+                        $(this).attr("href", newUrl); // Set herf value
+
+                    });
+
+                });
+
+
+                $(function () {
+                    var getData = function (request, response) {
+                        $.getJSON(
+                                "http://gd.geobytes.com/AutoCompleteCity?callback=?&q=" + request.term,
+                                function (data) {
+
+                                    response(data);
+                                });
+                    };
+
+                    var selectItem = function (event, ui) {
+                        this.value = ui.item.label;
+
+                        $("#mySearchTemp").val(ui.item.value);
+                        return false;
+                    }
+
+                    $("#mySearch").autocomplete({
+                        source: getData,
+                        select: selectItem,
+                        minLength: 3,
+                        change: function () {
+                            $("#mySearch").val("").css("display", 2);
+                        }
+                    });
+                });
+
+
+
+            });
+        </script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+
+    </body>
+</html>
